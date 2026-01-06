@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KANAŁ 007 | #WłączŚwiadomość</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <div class="brand" onclick="showPage('home')">
+                <img src="logo007neon.png" alt="Logo" class="main-logo">
+                <div class="logo-text">KANAŁ<span>007</span></div>
+            </div>
+            <div class="main-nav">
+                <button class="nav-item-neon" onclick="showPage('home')">Start</button>
+                <button class="nav-item-neon" onclick="showPage('articles-page')">Artykuły</button>
+                <button class="nav-item-neon" onclick="showPage('info-page')">Informacje</button>
+                <button class="nav-item-neon" onclick="showPage('polls-page')">Sondaże</button>
+            </div>
+        </div>
+    </nav>
+
+    <section id="home" class="page active">
+        <div class="hero-center">
+            <h1 class="main-title">KANAŁ 007</h1>
+            <p class="motto">#WŁĄCZŚWIADOMOŚĆ #TYLKOPRAWDA</p>
+            <div class="about-us-box">
+                <p>KANAŁ 007 to niezależne medium, które powstało z potrzeby dostarczania rzetelnych i nieprzefiltrowanych informacji. Stawiamy na twarde fakty, głęboką analizę oraz odwagę w zadawaniu trudnych pytań. Naszą misją jest budowanie świadomego społeczeństwa, które potrafi krytycznie patrzeć na otaczającą rzeczywistość. Wierzymy, że prawda obroni się sama, jeśli tylko damy jej odpowiednią przestrzeń. Działamy bez nacisków politycznych, dbając o najwyższe standardy etyki dziennikarskiej. Dołącz do nas i stań się częścią społeczności, która nie boi się wiedzieć więcej.</p>
+            </div>
+        </div>
+
+        <footer class="site-footer">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="brand">KANAŁ<span>007</span></div>
+                    <p>Niezależne medium informacyjne. #TylkoPrawda</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Nawigacja</h4>
+                    <p onclick="showPage('articles-page')">Artykuły</p>
+                    <p onclick="showPage('info-page')">Informacje</p>
+                    <p onclick="showPage('polls-page')">Sondaże</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Kontakt</h4>
+                    <p>Redakcja: Warszawa</p>
+                    <p>biurokanal007@gmail.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 KANAŁ 007</span>
+                <button class="btn-gate-trigger" onclick="openGate()">PANEL ZARZĄDZANIA</button>
+            </div>
+        </footer>
+    </section>
+
+    <section id="articles-page" class="page">
+        <h2 class="section-title">Najnowsze Artykuły</h2>
+        <div id="articles-grid" class="articles-grid"></div>
+    </section>
+
+    <section id="info-page" class="page">
+        <div class="info-container">
+            <h2 class="section-title">Czym się zajmujemy?</h2>
+            <div class="info-grid-interactive">
+                <div class="info-card-bounce">
+                    <h3>Wywiady</h3>
+                    <p>Przeprowadzamy dociekliwe rozmowy z ludźmi wpływającymi na rzeczywistość.</p>
+                </div>
+                <div class="info-card-bounce">
+                    <h3>Sondaże</h3>
+                    <p>Badamy opinię publiczną, dając głos każdemu z naszych odbiorców.</p>
+                </div>
+                <div class="info-card-bounce">
+                    <h3>Artykuły</h3>
+                    <p>Dostarczamy pogłębione analizy, artykuły śledcze i reportaże krajowe.</p>
+                </div>
+                <div class="info-card-bounce">
+                    <h3>Filmy</h3>
+                    <p>Produkujemy materiały video i transmisje live w najwyższej jakości.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="polls-page" class="page">
+        <h2 class="section-title">Sondaże</h2>
+        <div id="polls-container" class="polls-list"></div>
+    </section>
+
+    <section id="admin-login-page" class="page auth-page">
+        <div class="auth-card">
+            <h2>Panel Admina</h2>
+            <input type="text" id="admin-login-input" placeholder="Login" class="input-small">
+            <input type="password" id="admin-password-input" placeholder="Hasło" class="input-small">
+            <button class="btn-upgrade btn-small" onclick="verifyAdmin()">Zaloguj</button>
+        </div>
+    </section>
+
+    <section id="journalist-login-page" class="page auth-page">
+        <div class="auth-card">
+            <h2>Redakcja 007</h2>
+            <input type="text" id="j-id-input" placeholder="ID Dziennikarza" class="input-small">
+            <input type="password" id="j-pass-input" placeholder="Hasło" class="input-small">
+            <button class="btn-upgrade btn-small" onclick="loginJournalist()">Wejdź</button>
+        </div>
+    </section>
+
+    <section id="admin-dashboard" class="page">
+    <div class="glass-card admin-container">
+        <h2 class="section-title">Panel Zarządzania</h2>
+        
+        <div class="admin-grid">
+            <div class="admin-box">
+                <h3>Dziennikarze</h3>
+                <div class="compact-row">
+                    <input type="text" id="new-agent-id" placeholder="Nowe ID" class="input-custom">
+                    <button class="btn-upgrade btn-small" onclick="addAgent()">Dodaj</button>
+                </div>
+                <ul id="active-agents-list" class="admin-list-scroll"></ul>
+            </div>
+
+           <div class="admin-box">
+    <h3>Dziennikarze</h3>
+    <div class="compact-row">
+        <input type="text" id="new-agent-id" placeholder="Nowe ID" class="input-custom">
+        <button class="btn-upgrade btn-small" onclick="addAgent()">Dodaj</button>
+    </div>
+    <ul id="active-agents-list" class="admin-list-scroll"></ul>
+</div>
+        
+        <hr style="border: 0; border-top: 1px solid #222; margin: 30px 0;">
+        
+        <h3>Zarządzanie Artykułami</h3>
+        <div id="admin-articles-list" class="admin-list-scroll full-width"></div>
+    </div>
+</section>
+
+   <section id="journalist-login-page" class="page auth-page">
+    <div class="auth-card">
+        <h2>REDAKCJA 007</h2>
+        <div class="input-group">
+            <input type="text" id="j-id-input" placeholder="ID Dziennikarza" class="input-custom">
+        </div>
+        <div class="input-group">
+            <input type="password" id="j-pass-input" placeholder="Hasło" class="input-custom">
+        </div>
+        <button class="btn-upgrade btn-publish" onclick="loginJournalist()">WEJDŹ DO SYSTEMU</button>
+    </div>
+</section>
+
+<section id="editor-page" class="page">
+    <div class="glass-card editor-container">
+        <h2 class="section-title">PANEL REDAKCYJNY</h2>
+        <div class="editor-grid">
+            <div class="editor-sidebar">
+                <div class="input-group">
+                    <label>AUTOR</label>
+                    <input type="text" id="art-author" class="input-custom" placeholder="Imię / Pseudonim">
+                </div>
+                <div class="input-group">
+                    <label>TYTUŁ</label>
+                    <input type="text" id="art-title" class="input-custom" placeholder="Nagłówek">
+                </div>
+                <div class="input-group">
+                    <label>ZDJĘCIE GŁÓWNE</label>
+                    <label for="art-file" class="btn-file-trigger">WYBIERZ PLIK</label>
+                    <input type="file" id="art-file" accept="image/*" style="display:none">
+                    <span id="file-name-display">Nie wybrano pliku</span>
+                </div>
+            </div>
+            <div class="editor-main">
+                <label style="color:var(--red); font-size:12px; font-weight:bold;">TREŚĆ ARTYKUŁU</label>
+                <textarea id="art-content" class="textarea-custom" placeholder="Zacznij pisać..."></textarea>
+                <button class="btn-upgrade btn-publish" onclick="publishArticle()">OPUBLIKUJ ARTYKUŁ</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <div id="gate-modal" class="modal-overlay">
+        <div class="gate-card">
+            <span class="close-btn-gate" onclick="closeGate()">&times;</span>
+            <h2>Centrum Zarządzania</h2>
+            <button class="gate-btn" onclick="showAuth('admin')">ADMINISTRACJA</button>
+            <button class="gate-btn" onclick="showAuth('journalist')">PANEL DZIENNIKARZA</button>
+        </div>
+    </div>
+
+    <div id="article-modal" class="article-modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeArticle()">&times;</span>
+            <div id="modal-banner" class="modal-banner"></div>
+            <div class="modal-padding">
+                <h1 id="modal-title"></h1>
+                <div id="modal-body"></div>
+                <footer id="modal-footer"></footer>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <div id="notification-container" class="notification-container"></div>
+</body>
+</html>
