@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KANAŁ 007 | #WłączŚwiadomość</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <div class="logo-text">KANAŁ<span>007</span></div>
+            </div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-motto">#WŁĄCZŚWIADOMOŚĆ</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="brand" onclick="showPage('home')">
+                <img src="logo007neon.png" alt="Logo" class="main-logo">
+                <div class="logo-text">KANAŁ<span>007</span></div>
+            </div>
+            <div class="main-nav">
+                <button class="nav-item-neon" onclick="showPage('home')">
+                    <i class="fas fa-home"></i> Start
+                </button>
+                <button class="nav-item-neon" onclick="showPage('articles-page')">
+                    <i class="fas fa-newspaper"></i> Artykuły
+                </button>
+                <button class="nav-item-neon" onclick="showPage('info-page')">
+                    <i class="fas fa-info-circle"></i> Informacje
+                </button>
+                <button class="nav-item-neon" onclick="showPage('polls-page')">
+                    <i class="fas fa-chart-bar"></i> Sondaże
+                </button>
+                <button class="nav-item-neon" onclick="openGate()" style="background: var(--red);">
+                    <i class="fas fa-lock"></i> Panel
+                </button>
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <button class="nav-item-neon" onclick="showPage('home'); toggleMobileMenu()">
+            <i class="fas fa-home"></i> Start
+        </button>
+        <button class="nav-item-neon" onclick="showPage('articles-page'); toggleMobileMenu()">
+            <i class="fas fa-newspaper"></i> Artykuły
+        </button>
+        <button class="nav-item-neon" onclick="showPage('info-page'); toggleMobileMenu()">
+            <i class="fas fa-info-circle"></i> Informacje
+        </button>
+        <button class="nav-item-neon" onclick="showPage('polls-page'); toggleMobileMenu()">
+            <i class="fas fa-chart-bar"></i> Sondaże
+        </button>
+        <button class="nav-item-neon" onclick="openGate(); toggleMobileMenu()" style="background: var(--red);">
+            <i class="fas fa-lock"></i> Panel Zarządzania
+        </button>
+    </div>
+
+    <!-- Main Pages -->
+    <section id="home" class="page active">
+        <div class="hero-center">
+            <h1 class="main-title">KANAŁ 007</h1>
+            <p class="motto">#WŁĄCZŚWIADOMOŚĆ #TYLKOPRAWDA</p>
+            <div class="about-us-box">
+                <p id="about-text">KANAŁ 007 to niezależne medium, które powstało z potrzeby dostarczania rzetelnych i nieprzefiltrowanych informacji. Stawiamy na twarde fakty, głęboką analizę oraz odwagę w zadawaniu trudnych pytań. Naszą misją jest budowanie świadomego społeczeństwa, które potrafi krytycznie patrzeć na otaczającą rzeczywistość. Wierzymy, że prawda obroni się sama, jeśli tylko damy jej odpowiednią przestrzeń. Działamy bez nacisków politycznych, dbając o najwyższe standardy etyki dziennikarskiej. Dołącz do nas i stań się częścią społeczności, która nie boi się wiedzieć więcej.</p>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-newspaper"></i>
+                    <h3 id="articles-count">0</h3>
+                    <p>Artykułów</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3 id="polls-count">0</h3>
+                    <p>Sondaży</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3 id="agents-count">0</h3>
+                    <p>Dziennikarzy</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-comments"></i>
+                    <h3 id="comments-count">0</h3>
+                    <p>Komentarzy</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="brand">KANAŁ<span>007</span></div>
+                    <p>Niezależne medium informacyjne. #TylkoPrawda</p>
+                    <div class="social-links">
+                        <i class="fab fa-youtube"></i>
+                        <i class="fab fa-facebook"></i>
+                        <i class="fab fa-twitter"></i>
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Nawigacja</h4>
+                    <p onclick="showPage('articles-page')">Artykuły</p>
+                    <p onclick="showPage('info-page')">Informacje</p>
+                    <p onclick="showPage('polls-page')">Sondaże</p>
+                    <p onclick="showPage('contact-page')">Kontakt</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Kontakt</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Redakcja: Warszawa</p>
+                    <p><i class="fas fa-envelope"></i> biurokanal007@gmail.com</p>
+                    <p><i class="fas fa-phone"></i> +48 123 456 789</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Newsletter</h4>
+                    <p>Subskrybuj najnowsze informacje</p>
+                    <input type="email" placeholder="Twój email" class="newsletter-input">
+                    <button class="btn-upgrade">Subskrybuj</button>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 KANAŁ 007 | Wszelkie prawa zastrzeżone</span>
+                <button class="btn-gate-trigger" onclick="openGate()">
+                    <i class="fas fa-user-shield"></i> PANEL ZARZĄDZANIA
+                </button>
+            </div>
+        </footer>
+    </section>
+
+    <!-- Articles Page -->
+    <section id="articles-page" class="page">
+        <div class="page-header">
+            <h2 class="section-title">Najnowsze Artykuły</h2>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="article-search" placeholder="Wyszukaj artykuł..." oninput="filterArticles()">
+                <select id="sort-articles" onchange="sortArticles()">
+                    <option value="newest">Najnowsze</option>
+                    <option value="oldest">Najstarsze</option>
+                    <option value="popular">Najpopularniejsze</option>
+                </select>
+            </div>
+        </div>
+        <div id="articles-grid" class="articles-grid">
+            <!-- Articles will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Info Page -->
+    <section id="info-page" class="page">
+        <div class="info-container">
+            <h2 class="section-title">Czym się zajmujemy?</h2>
+            <div class="info-grid-interactive">
+                <div class="info-card-bounce">
+                    <div class="info-icon">
+                        <i class="fas fa-microphone-alt"></i>
+                    </div>
+                    <h3>Wywiady</h3>
+                    <p>Przeprowadzamy dociekliwe rozmowy z ludźmi wpływającymi na rzeczywistość.</p>
+                </div>
+                <div class="info-card-bounce">
+                    <div class="info-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Sondaże</h3>
+                    <p>Publikujemy wyniki badań opinii publicznej w formie grafik i analiz.</p>
+                </div>
+                <div class="info-card-bounce">
+                    <div class="info-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h3>Artykuły</h3>
+                    <p>Dostarczamy pogłębione analizy, artykuły śledcze i reportaże krajowe.</p>
+                </div>
+                <div class="info-card-bounce">
+                    <div class="info-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3>Filmy</h3>
+                    <p>Produkujemy materiały video i transmisje live w najwyższej jakości.</p>
+                </div>
+            </div>
+            
+            <!-- Team Section -->
+            <div class="team-section">
+                <h3>Nasz Zespół</h3>
+                <div class="team-grid">
+                    <div class="team-member">
+                        <div class="member-avatar">A1</div>
+                        <h4>Agent 001</h4>
+                        <p>Redaktor Naczelny</p>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-avatar">A2</div>
+                        <h4>Agent 002</h4>
+                        <p>Dziennikarz Śledczy</p>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-avatar">A3</div>
+                        <h4>Agent 003</h4>
+                        <p>Analityk Polityczny</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Polls Page -->
+    <section id="polls-page" class="page">
+        <div class="page-header">
+            <h2 class="section-title">Wyniki Sondaży</h2>
+            <p class="page-subtitle">Najnowsze badania opinii publicznej</p>
+        </div>
+        <div id="polls-container" class="polls-grid">
+            <!-- Polls will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Contact Page -->
+    <section id="contact-page" class="page">
+        <div class="contact-container">
+            <h2 class="section-title">Kontakt z Redakcją</h2>
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h3><i class="fas fa-map-marker-alt"></i> Adres</h3>
+                    <p>Warszawa, ul. Niezależna 007</p>
+                    
+                    <h3><i class="fas fa-envelope"></i> Email</h3>
+                    <p>biurokanal007@gmail.com</p>
+                    
+                    <h3><i class="fas fa-phone"></i> Telefon</h3>
+                    <p>+48 123 456 789</p>
+                    
+                    <h3><i class="fas fa-clock"></i> Godziny pracy</h3>
+                    <p>Pon-Pt: 8:00-18:00</p>
+                </div>
+                <div class="contact-form">
+                    <input type="text" placeholder="Imię i nazwisko" class="input-custom">
+                    <input type="email" placeholder="Email" class="input-custom">
+                    <input type="text" placeholder="Temat" class="input-custom">
+                    <textarea placeholder="Wiadomość" class="textarea-custom" rows="5"></textarea>
+                    <button class="btn-upgrade">Wyślij wiadomość</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Pages -->
+    <section id="admin-login-page" class="page auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fas fa-user-shield"></i>
+                <h2>Panel Administratora</h2>
+                <p>Dostęp tylko dla autoryzowanych osób</p>
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> Login</label>
+                <input type="text" id="admin-login-input" placeholder="Wpisz login" class="input-custom">
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-lock"></i> Hasło</label>
+                <input type="password" id="admin-password-input" placeholder="Wpisz hasło" class="input-custom">
+            </div>
+            <button class="btn-upgrade" onclick="verifyAdmin()">
+                <i class="fas fa-sign-in-alt"></i> Zaloguj
+            </button>
+            <button class="btn-back" onclick="showPage('home')">
+                <i class="fas fa-arrow-left"></i> Powrót do strony
+            </button>
+        </div>
+    </section>
+
+    <section id="journalist-login-page" class="page auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fas fa-newspaper"></i>
+                <h2>Redakcja 007</h2>
+                <p>Panel dziennikarski</p>
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-id-card"></i> ID Dziennikarza</label>
+                <input type="text" id="j-id-input" placeholder="Np. DZIENNIKARZ007" class="input-custom">
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-key"></i> Hasło</label>
+                <input type="password" id="j-pass-input" placeholder="Wpisz hasło" class="input-custom">
+            </div>
+            <button class="btn-upgrade" onclick="loginJournalist()">
+                <i class="fas fa-door-open"></i> Wejdź do systemu
+            </button>
+            <button class="btn-back" onclick="showPage('home')">
+                <i class="fas fa-arrow-left"></i> Powrót do strony
+            </button>
+        </div>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section id="admin-dashboard" class="page">
+        <div class="glass-card admin-container">
+            <div class="admin-header">
+                <h2><i class="fas fa-user-shield"></i> CENTRUM ZARZĄDZANIA 007</h2>
+                <div class="admin-stats">
+                    <span><i class="fas fa-newspaper"></i> Artykuły: <strong id="admin-articles-count">0</strong></span>
+                    <span><i class="fas fa-chart-bar"></i> Sondaże: <strong id="admin-polls-count">0</strong></span>
+                    <span><i class="fas fa-users"></i> Dziennikarze: <strong id="admin-journalists-count">0</strong></span>
+                </div>
+            </div>
+            
+            <div class="admin-grid">
+                <!-- Zarządzanie Dziennikarzami -->
+                <div class="admin-box">
+                    <h3><i class="fas fa-user-plus"></i> Zarządzanie Kadrą</h3>
+                    <div class="compact-row">
+                        <input type="text" id="new-agent-id" placeholder="Nowe ID Dziennikarza" class="input-custom">
+                        <button class="btn-upgrade btn-small" onclick="addAgent()">Dodaj</button>
+                    </div>
+                    <div class="agents-list-header">
+                        <span>Aktywni Dziennikarze</span>
+                        <span class="agents-count">0</span>
+                    </div>
+                    <ul id="active-agents-list" class="admin-list-scroll"></ul>
+                </div>
+
+                <!-- Publikacja Sondaży -->
+                <div class="admin-box">
+                    <h3><i class="fas fa-chart-bar"></i> Publikuj Sondaż</h3>
+                    <input type="text" id="poll-title" placeholder="Tytuł Sondażu" class="input-custom">
+                    <input type="text" id="poll-description" placeholder="Opis sondażu (opcjonalnie)" class="input-custom" style="margin-top:10px;">
+                    <div class="input-group">
+                        <label for="poll-file" class="btn-file-trigger">
+                            <i class="fas fa-image"></i> Wybierz Grafikę Sondażu
+                        </label>
+                        <input type="file" id="poll-file" accept="image/*" style="display:none">
+                        <span id="poll-file-name" class="file-info">Nie wybrano pliku</span>
+                    </div>
+                    <button class="btn-upgrade btn-publish" onclick="publishPoll()" style="margin-top:15px;">
+                        <i class="fas fa-paper-plane"></i> Opublikuj Sondaż
+                    </button>
+                </div>
+
+                <!-- Szybka Publikacja Artykułu -->
+                <div class="admin-box full-width">
+                    <h3><i class="fas fa-bolt"></i> Szybka Publikacja Artykułu</h3>
+                    <div class="admin-editor-layout">
+                        <div class="editor-side">
+                            <input type="text" id="admin-art-title" placeholder="Tytuł artykułu" class="input-custom">
+                            <input type="text" id="admin-art-author" placeholder="Autor (opcjonalnie)" class="input-custom">
+                            <label style="font-size:12px; color:var(--red);">
+                                <i class="fas fa-calendar"></i> DATA PUBLIKACJI (opcjonalnie):
+                            </label>
+                            <input type="date" id="admin-art-date" class="input-custom">
+                            <label for="admin-art-file" class="btn-file-trigger">
+                                <i class="fas fa-camera"></i> Wybierz Zdjęcie
+                            </label>
+                            <input type="file" id="admin-art-file" accept="image/*" style="display:none">
+                            <span id="admin-art-file-name" class="file-info">Nie wybrano pliku</span>
+                        </div>
+                        <div class="editor-main">
+                            <textarea id="admin-art-content" placeholder="Treść artykułu..." class="textarea-custom"></textarea>
+                            <button class="btn-upgrade btn-publish" onclick="adminPublishArticle()">
+                                <i class="fas fa-rocket"></i> OPUBLIKUJ JAKO ADMIN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="admin-hr">
+
+            <!-- Management Lists -->
+            <div class="admin-management-lists">
+                <div class="management-col">
+                    <h3><i class="fas fa-trash"></i> Usuń Artykuły</h3>
+                    <div id="admin-articles-list" class="admin-list-scroll"></div>
+                </div>
+                <div class="management-col">
+                    <h3><i class="fas fa-trash-alt"></i> Usuń Sondaże</h3>
+                    <div id="admin-polls-list" class="admin-list-scroll"></div>
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            <div class="admin-actions">
+                <button class="btn-admin-action" onclick="exportData()">
+                    <i class="fas fa-download"></i> Eksportuj Dane
+                </button>
+                <button class="btn-admin-action" onclick="clearAllData()">
+                    <i class="fas fa-broom"></i> Wyczyść Wszystko
+                </button>
+                <button class="btn-admin-action" onclick="backupData()">
+                    <i class="fas fa-save"></i> Kopia Zapasowa
+                </button>
+                <button class="btn-back" onclick="showPage('home')">
+                    <i class="fas fa-sign-out-alt"></i> Wyloguj
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Journalist Dashboard -->
+    <section id="editor-page" class="page">
+        <div class="glass-card editor-container">
+            <div class="editor-header">
+                <h2><i class="fas fa-edit"></i> PANEL REDAKCYJNY</h2>
+                <div class="editor-info">
+                    <span>Zalogowany jako: <strong id="current-journalist">-</strong></span>
+                    <button class="btn-logout" onclick="logoutJournalist()">
+                        <i class="fas fa-sign-out-alt"></i> Wyloguj
+                    </button>
+                </div>
+            </div>
+            
+            <div class="editor-grid">
+                <!-- Sidebar -->
+                <div class="editor-sidebar">
+                    <div class="input-group">
+                        <label><i class="fas fa-user-edit"></i> AUTOR</label>
+                        <input type="text" id="art-author" class="input-custom" placeholder="Imię / Pseudonim">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-heading"></i> TYTUŁ</label>
+                        <input type="text" id="art-title" class="input-custom" placeholder="Nagłówek artykułu">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-image"></i> ZDJĘCIE GŁÓWNE</label>
+                        <div class="file-upload-area" onclick="document.getElementById('art-file').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Kliknij aby wybrać zdjęcie</p>
+                            <span>Max. 5MB</span>
+                        </div>
+                        <input type="file" id="art-file" accept="image/*" style="display:none">
+                        <div id="file-preview" class="file-preview"></div>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-tags"></i> TAGI</label>
+                        <input type="text" id="art-tags" class="input-custom" placeholder="polityka, gospodarka, społeczeństwo">
+                    </div>
+                </div>
+                
+                <!-- Main Editor -->
+                <div class="editor-main">
+                    <div class="editor-toolbar">
+                        <button onclick="formatText('bold')"><i class="fas fa-bold"></i></button>
+                        <button onclick="formatText('italic')"><i class="fas fa-italic"></i></button>
+                        <button onclick="formatText('underline')"><i class="fas fa-underline"></i></button>
+                        <button onclick="insertHeading()"><i class="fas fa-heading"></i></button>
+                        <button onclick="insertImage()"><i class="fas fa-image"></i></button>
+                        <button onclick="insertLink()"><i class="fas fa-link"></i></button>
+                    </div>
+                    <textarea id="art-content" class="textarea-custom editor-textarea" placeholder="Zacznij pisać swój artykuł..."></textarea>
+                    
+                    <div class="editor-footer">
+                        <div class="word-count">
+                            <i class="fas fa-file-word"></i> Słowa: <span id="word-count">0</span>
+                        </div>
+                        <button class="btn-upgrade btn-publish" onclick="publishArticle()">
+                            <i class="fas fa-paper-plane"></i> OPUBLIKUJ ARTYKUŁ
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Articles -->
+            <div class="my-articles-section">
+                <h3><i class="fas fa-history"></i> Moje Ostatnie Artykuły</h3>
+                <div id="my-articles-list" class="my-articles-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gate Modal -->
+    <div id="gate-modal" class="modal-overlay">
+        <div class="gate-card">
+            <span class="close-btn-gate" onclick="closeGate()">&times;</span>
+            <div class="gate-icon">
+                <i class="fas fa-user-secret"></i>
+            </div>
+            <h2>Centrum Zarządzania</h2>
+            <p>Wybierz poziom dostępu</p>
+            
+            <div class="gate-buttons">
+                <button class="gate-btn admin-btn" onclick="showAuth('admin')">
+                    <i class="fas fa-user-shield"></i>
+                    <span>ADMINISTRACJA</span>
+                    <small>Pełny dostęp do systemu</small>
+                </button>
+                <button class="gate-btn journalist-btn" onclick="showAuth('journalist')">
+                    <i class="fas fa-newspaper"></i>
+                    <span>PANEL DZIENNIKARZA</span>
+                    <small>Publikacja artykułów</small>
+                </button>
+            </div>
+            
+            <button class="btn-back" onclick="closeGate()">
+                <i class="fas fa-times"></i> Zamknij
+            </button>
+        </div>
+    </div>
+
+    <!-- Article Modal -->
+    <div id="article-modal" class="article-modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeArticle()">&times;</span>
+            <div id="modal-banner" class="modal-banner"></div>
+            <div class="modal-padding">
+                <div class="article-header">
+                    <h1 id="modal-title"></h1>
+                    <div class="article-meta">
+                        <span class="article-author" id="modal-author"></span>
+                        <span class="article-date" id="modal-date"></span>
+                        <span class="article-views">
+                            <i class="fas fa-eye"></i> <span id="modal-views">0</span>
+                        </span>
+                    </div>
+                    <div class="article-tags" id="modal-tags"></div>
+                </div>
+                
+                <div class="article-content" id="modal-body"></div>
+                
+                <!-- Reactions -->
+                <div class="article-reactions">
+                    <button class="btn-reaction like-btn" onclick="addLike()">
+                        <i class="fas fa-thumbs-up"></i>
+                        <span id="like-count">0</span>
+                    </button>
+                    <button class="btn-reaction dislike-btn" onclick="addDislike()">
+                        <i class="fas fa-thumbs-down"></i>
+                        <span id="dislike-count">0</span>
+                    </button>
+                    <button class="btn-reaction share-btn" onclick="shareArticle()">
+                        <i class="fas fa-share"></i> Udostępnij
+                    </button>
+                    <button class="btn-reaction save-btn" onclick="saveArticle()">
+                        <i class="fas fa-bookmark"></i> Zapisz
+                    </button>
+                </div>
+                
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <h3><i class="fas fa-comments"></i> Komentarze (<span id="comments-count">0</span>)</h3>
+                    
+                    <div class="comment-form">
+                        <div class="comment-input-group">
+                            <input type="text" id="comment-nick" placeholder="Twój nick" class="input-custom">
+                            <textarea id="comment-text" placeholder="Co myślisz o tym artykule?" class="textarea-custom"></textarea>
+                            <button class="btn-upgrade" onclick="postComment()">
+                                <i class="fas fa-paper-plane"></i> Dodaj komentarz
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="comments-list" class="comments-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Poll Modal -->
+    <div id="poll-modal" class="modal-overlay">
+        <div class="poll-modal-content">
+            <span class="close-btn" onclick="closePollModal()">&times;</span>
+            <div id="poll-modal-image" class="poll-modal-image"></div>
+            <div class="poll-modal-info">
+                <h2 id="poll-modal-title"></h2>
+                <p id="poll-modal-description"></p>
+                <div class="poll-modal-date" id="poll-modal-date"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <!-- Background Particles -->
+    <div id="particles-js"></div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
