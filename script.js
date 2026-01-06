@@ -4,13 +4,13 @@
 
 // KONFIGURACJA FIREBASE - UZUPEŁNIJ SWOIMI DANYMI!
 const firebaseConfig = {
-  apiKey: "TU_WKLEJ_API_KEY",
-  authDomain: "TU_WKLEJ_AUTH_DOMAIN",
-  databaseURL: "TU_WKLEJ_DATABASE_URL",
-  projectId: "TU_WKLEJ_PROJECT_ID",
-  storageBucket: "TU_WKLEJ_STORAGE_BUCKET",
-  messagingSenderId: "TU_WKLEJ_SENDER_ID",
-  appId: "TU_WKLEJ_APP_ID"
+  apiKey: "AIzaSyCSGvU2MnspxH7kwF_DdsQdrCNFZ_QcGTs",
+  authDomain: "kanal007-4b697.firebaseapp.com",
+  databaseURL: "https://kanal007-4b697-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "kanal007-4b697",
+  storageBucket: "kanal007-4b697.firebasestorage.app",
+  messagingSenderId: "881281183694",
+  appId: "1:881281183694:web:25521e894704cc5d8e459f"
 };
 
 // Inicjalizuj Firebase
@@ -1264,3 +1264,4 @@ document.addEventListener('keydown', function(event) {
         closePollModal();
     }
 });
+
