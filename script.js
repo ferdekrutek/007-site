@@ -1,12 +1,31 @@
 // ====================
+// FIREBASE CONFIGURATION
+// ====================
+
+// KONFIGURACJA FIREBASE - UZUPEŁNIJ SWOIMI DANYMI!
+const firebaseConfig = {
+  apiKey: "TU_WKLEJ_API_KEY",
+  authDomain: "TU_WKLEJ_AUTH_DOMAIN",
+  databaseURL: "TU_WKLEJ_DATABASE_URL",
+  projectId: "TU_WKLEJ_PROJECT_ID",
+  storageBucket: "TU_WKLEJ_STORAGE_BUCKET",
+  messagingSenderId: "TU_WKLEJ_SENDER_ID",
+  appId: "TU_WKLEJ_APP_ID"
+};
+
+// Inicjalizuj Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ====================
 // INITIALIZATION
 // ====================
 
 // Dane startowe
-let articles = JSON.parse(localStorage.getItem('k007_articles')) || [];
-let polls = JSON.parse(localStorage.getItem('k007_polls')) || [];
-let allowedIDs = JSON.parse(localStorage.getItem('k007_allowed_ids')) || ["DZIENNIKARZ001", "DZIENNIKARZ002"];
-let journalistPasses = JSON.parse(localStorage.getItem('k007_j_passes')) || {};
+let articles = [];
+let polls = [];
+let allowedIDs = [];
+let journalistPasses = {};
 let currentUser = null;
 let currentArticleIndex = null;
 
@@ -54,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Ładowanie tekstu o nas
+    // Ładowanie tekstu o nas z localStorage
     const savedAbout = localStorage.getItem('k007_about_text');
     if(savedAbout) {
         document.getElementById('about-text').innerText = savedAbout;
@@ -63,8 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Podgląd plików
     setupFilePreviews();
     
-    // Aktualizuj statystyki
-    updateStatistics();
+    // Załaduj dane z Firebase
+    loadArticlesFromFirebase();
+    loadPollsFromFirebase();
+    loadJournalistsFromFirebase();
     
     // Renderuj początkowe dane
     renderArticles();
@@ -73,6 +94,60 @@ document.addEventListener('DOMContentLoaded', () => {
     // Nasłuchuj zmiany tekstu dla liczenia słów
     document.getElementById('art-content').addEventListener('input', updateWordCount);
 });
+
+// ====================
+// FIREBASE FUNCTIONS
+// ====================
+
+// Ładowanie dziennikarzy z Firebase
+function loadJournalistsFromFirebase() {
+    database.ref('journalists').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            allowedIDs = Object.keys(data);
+            journalistPasses = data;
+            updateStatistics();
+            
+            // Aktualizuj listę w panelu admina
+            if (document.getElementById('active-agents-list')) {
+                renderAdminTools();
+            }
+        }
+    });
+}
+
+// Ładowanie artykułów z Firebase
+function loadArticlesFromFirebase() {
+    database.ref('articles').orderByChild('date').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Konwertuj obiekt na tablicę
+            articles = Object.values(data);
+            // Sortuj od najnowszych
+            articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderArticles();
+            updateStatistics();
+            
+            // Aktualizuj dashboard dziennikarza
+            if (currentUser && currentUser.type === 'journalist') {
+                renderJournalistDashboard();
+            }
+        }
+    });
+}
+
+// Ładowanie sondaży z Firebase
+function loadPollsFromFirebase() {
+    database.ref('polls').orderByChild('createdAt').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            polls = Object.values(data);
+            polls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            renderPolls();
+            updateStatistics();
+        }
+    });
+}
 
 // ====================
 // UTILITIES
@@ -113,13 +188,10 @@ function updateStatistics() {
     document.getElementById('admin-journalists-count').innerText = allowedIDs.length;
 }
 
-// Zapis danych
+// Zapis danych (dla danych lokalnych jak tekst "o nas")
 function saveData() {
-    localStorage.setItem('k007_articles', JSON.stringify(articles));
-    localStorage.setItem('k007_polls', JSON.stringify(polls));
-    localStorage.setItem('k007_allowed_ids', JSON.stringify(allowedIDs));
-    localStorage.setItem('k007_j_passes', JSON.stringify(journalistPasses));
-    updateStatistics();
+    // Tylko dla danych lokalnych
+    localStorage.setItem('k007_about_text', document.getElementById('about-text').innerText);
 }
 
 // ====================
@@ -175,7 +247,7 @@ function showAuth(type) {
     showPage(type + '-login-page');
 }
 
-// Logowanie admina
+// Logowanie admina (NIE ZMIENIONE - lokalne)
 function verifyAdmin() {
     const login = document.getElementById('admin-login-input').value;
     const password = document.getElementById('admin-password-input').value;
@@ -189,29 +261,38 @@ function verifyAdmin() {
     }
 }
 
-// Logowanie dziennikarza
+// Logowanie dziennikarza (ZMIENIONE - Firebase)
 function loginJournalist() {
     const id = document.getElementById('j-id-input').value.toUpperCase().trim();
     const pass = document.getElementById('j-pass-input').value;
     
-    if(!allowedIDs.includes(id)) {
-        return showAlert("BŁĄD: Identyfikator nie istnieje w systemie!", "error");
+    if(!id || !pass) {
+        return showAlert("Wpisz ID i hasło!", "warning");
     }
     
-    // Jeśli pierwsze logowanie, ustaw hasło
-    if(!journalistPasses[id]) {
-        journalistPasses[id] = pass;
-        localStorage.setItem('k007_j_passes', JSON.stringify(journalistPasses));
-    }
-    
-    if(journalistPasses[id] === pass) {
-        currentUser = { type: 'journalist', id: id };
-        document.getElementById('current-journalist').innerText = id;
-        showAlert(`Witaj w systemie, ${id}`, "success");
-        showPage('editor-page');
-    } else {
-        showAlert("BŁĄD: Hasło nieprawidłowe!", "error");
-    }
+    // Sprawdź w Firebase
+    database.ref('journalists/' + id).once('value')
+        .then((snapshot) => {
+            const journalistData = snapshot.val();
+            
+            if (!journalistData) {
+                return showAlert("BŁĄD: Identyfikator nie istnieje w systemie!", "error");
+            }
+            
+            if (journalistData.password === pass) {
+                currentUser = { type: 'journalist', id: id };
+                document.getElementById('current-journalist').innerText = id;
+                showAlert(`Witaj w systemie, ${id}`, "success");
+                showPage('editor-page');
+                renderJournalistDashboard();
+            } else {
+                showAlert("BŁĄD: Hasło nieprawidłowe!", "error");
+            }
+        })
+        .catch((error) => {
+            console.error("Firebase error:", error);
+            showAlert("Błąd połączenia z bazą danych", "error");
+        });
 }
 
 function logoutJournalist() {
@@ -224,8 +305,13 @@ function logoutJournalist() {
 // ARTICLE MANAGEMENT
 // ====================
 
-// Publikacja artykułu przez dziennikarza
+// Publikacja artykułu przez dziennikarza (ZMIENIONE - Firebase)
 function publishArticle() {
+    if (!currentUser) {
+        showAlert("Musisz być zalogowany!", "error");
+        return;
+    }
+    
     const title = document.getElementById('art-title').value.trim();
     const content = document.getElementById('art-content').value.trim();
     const author = document.getElementById('art-author').value.trim() || currentUser.id;
@@ -239,13 +325,15 @@ function publishArticle() {
 
     const reader = new FileReader();
     reader.onload = function(e) {
+        const articleId = Date.now();
         const newArticle = {
-            id: Date.now(),
+            id: articleId,
             title: title,
             content: content,
             author: author,
             image: e.target.result,
-            date: new Date().toLocaleDateString('pl-PL', {
+            date: new Date().toISOString(),
+            displayDate: new Date().toLocaleDateString('pl-PL', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -261,20 +349,21 @@ function publishArticle() {
             status: 'published'
         };
 
-        articles.unshift(newArticle);
-        saveData();
-        
-        // Reset formularza
-        resetEditorForm();
-        
-        showAlert("Artykuł został opublikowany!", "success");
-        renderArticles();
-        renderJournalistDashboard();
+        // Zapisz w Firebase
+        database.ref('articles/' + articleId).set(newArticle)
+            .then(() => {
+                resetEditorForm();
+                showAlert("Artykuł został opublikowany!", "success");
+            })
+            .catch((error) => {
+                console.error("Firebase error:", error);
+                showAlert("Błąd podczas publikacji", "error");
+            });
     };
     reader.readAsDataURL(file);
 }
 
-// Publikacja artykułu przez admina
+// Publikacja artykułu przez admina (ZMIENIONE - Firebase)
 function adminPublishArticle() {
     const title = document.getElementById('admin-art-title').value.trim();
     const content = document.getElementById('admin-art-content').value.trim();
@@ -289,15 +378,17 @@ function adminPublishArticle() {
 
     const reader = new FileReader();
     reader.onload = function(e) {
+        const articleId = Date.now();
         const dateObj = customDate ? new Date(customDate) : new Date();
         
         const newArticle = {
-            id: Date.now(),
+            id: articleId,
             title: title,
             content: content,
             author: author,
             image: e.target.result,
-            date: dateObj.toLocaleDateString('pl-PL', {
+            date: dateObj.toISOString(),
+            displayDate: dateObj.toLocaleDateString('pl-PL', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -311,17 +402,20 @@ function adminPublishArticle() {
             status: 'published'
         };
 
-        articles.unshift(newArticle);
-        saveData();
-        
-        // Reset formularza
-        document.getElementById('admin-art-title').value = '';
-        document.getElementById('admin-art-content').value = '';
-        document.getElementById('admin-art-file-name').innerText = 'Nie wybrano pliku';
-        
-        showAlert("Artykuł opublikowany przez administratora!", "success");
-        renderAdminTools();
-        renderArticles();
+        // Zapisz w Firebase
+        database.ref('articles/' + articleId).set(newArticle)
+            .then(() => {
+                // Reset formularza
+                document.getElementById('admin-art-title').value = '';
+                document.getElementById('admin-art-content').value = '';
+                document.getElementById('admin-art-file-name').innerText = 'Nie wybrano pliku';
+                
+                showAlert("Artykuł opublikowany przez administratora!", "success");
+            })
+            .catch((error) => {
+                console.error("Firebase error:", error);
+                showAlert("Błąd podczas publikacji", "error");
+            });
     };
     reader.readAsDataURL(file);
 }
@@ -354,13 +448,13 @@ function renderArticles() {
     
     grid.innerHTML = filtered.map((article, index) => `
         <div class="article-card" onclick="openArticle(${index})">
-            <img src="${article.image}" alt="${article.title}">
+            <img src="${article.image}" alt="${article.title}" loading="lazy">
             <div class="card-content">
                 <h3>${article.title}</h3>
-                <p>${article.content.substring(0, 150)}...</p>
+                <p>${article.content.substring(0, 150).replace(/<[^>]*>/g, '')}...</p>
                 <div class="article-stats">
                     <span><i class="fas fa-user"></i> ${article.author}</span>
-                    <span><i class="fas fa-calendar"></i> ${article.date}</span>
+                    <span><i class="fas fa-calendar"></i> ${article.displayDate || article.date}</span>
                     <span><i class="fas fa-thumbs-up"></i> ${article.likes || 0}</span>
                 </div>
             </div>
@@ -381,7 +475,7 @@ function sortArticles() {
 // POLLS MANAGEMENT (WYNIKI SONDARZY)
 // ====================
 
-// Publikacja sondażu (wyników jako grafiki)
+// Publikacja sondażu (ZMIENIONE - Firebase)
 function publishPoll() {
     const title = document.getElementById('poll-title').value.trim();
     const description = document.getElementById('poll-description').value.trim();
@@ -393,8 +487,9 @@ function publishPoll() {
     
     const reader = new FileReader();
     reader.onload = function(e) {
+        const pollId = Date.now();
         const newPoll = {
-            id: Date.now(),
+            id: pollId,
             title: title,
             description: description || '',
             image: e.target.result,
@@ -406,17 +501,20 @@ function publishPoll() {
             createdAt: new Date().toISOString()
         };
         
-        polls.unshift(newPoll);
-        saveData();
-        
-        // Reset formularza
-        document.getElementById('poll-title').value = '';
-        document.getElementById('poll-description').value = '';
-        document.getElementById('poll-file-name').innerText = 'Nie wybrano pliku';
-        
-        showAlert("Sondaż opublikowany!", "success");
-        renderPolls();
-        renderAdminTools();
+        // Zapisz w Firebase
+        database.ref('polls/' + pollId).set(newPoll)
+            .then(() => {
+                // Reset formularza
+                document.getElementById('poll-title').value = '';
+                document.getElementById('poll-description').value = '';
+                document.getElementById('poll-file-name').innerText = 'Nie wybrano pliku';
+                
+                showAlert("Sondaż opublikowany!", "success");
+            })
+            .catch((error) => {
+                console.error("Firebase error:", error);
+                showAlert("Błąd podczas publikacji", "error");
+            });
     };
     reader.readAsDataURL(file);
 }
@@ -461,32 +559,26 @@ function closePollModal() {
 // ARTICLE VIEWER & REACTIONS SYSTEM
 // ====================
 
-// Otwieranie artykułu
+// Otwieranie artykułu (ZMIENIONE - aktualizacja w Firebase)
 function openArticle(index) {
     currentArticleIndex = index;
     const article = articles[index];
     
-    // Inicjalizuj reakcje jeśli nie istnieją
-    if(!article.reactions) {
-        article.reactions = { likes: [], dislikes: [] };
-    }
+    if (!article) return;
     
-    // Inicjalizuj liczniki
-    article.likes = article.reactions.likes ? article.reactions.likes.length : 0;
-    article.dislikes = article.reactions.dislikes ? article.reactions.dislikes.length : 0;
+    // Zwiększ licznik wyświetleń w Firebase
+    const newViews = (article.views || 0) + 1;
+    database.ref('articles/' + article.id + '/views').set(newViews);
     
-    // Inicjalizuj komentarze jeśli nie istnieją
-    if(!article.comments) article.comments = [];
-    
-    // Zwiększ licznik wyświetleń
-    article.views = (article.views || 0) + 1;
+    // Aktualizuj lokalnie
+    article.views = newViews;
     
     // Aktualizuj UI
     document.getElementById('modal-banner').style.backgroundImage = `url('${article.image}')`;
     document.getElementById('modal-title').innerText = article.title;
     document.getElementById('modal-body').innerHTML = article.content;
     document.getElementById('modal-author').innerText = article.author;
-    document.getElementById('modal-date').innerText = article.date;
+    document.getElementById('modal-date').innerText = article.displayDate || article.date;
     document.getElementById('modal-views').innerText = article.views || 0;
     
     // Tagi
@@ -504,9 +596,6 @@ function openArticle(index) {
     // Pokaż modal
     document.getElementById('article-modal').style.display = 'block';
     document.body.style.overflow = 'hidden';
-    
-    // Zapisz dane
-    saveData();
 }
 
 function closeArticle() {
@@ -515,7 +604,7 @@ function closeArticle() {
 }
 
 // ====================
-// LIKES/DISLIKES SYSTEM
+// LIKES/DISLIKES SYSTEM (ZMIENIONE - Firebase)
 // ====================
 
 // Funkcja dodająca/zmieniająca like
@@ -524,33 +613,49 @@ function addLike() {
     
     const article = articles[currentArticleIndex];
     const userId = getUserId();
-    const userReaction = getUserReaction(article.id, userId);
     
-    if(!article.reactions) {
-        article.reactions = { likes: [], dislikes: [] };
-    }
-    
-    if(userReaction === 'like') {
-        // Jeśli już polubił, usuń like
-        article.reactions.likes = article.reactions.likes.filter(id => id !== userId);
-        article.likes = (article.likes || 1) - 1;
-        showAlert("Usunięto polubienie", "info");
-    } else {
-        // Dodaj like
-        if(userReaction === 'dislike') {
-            // Jeśli miał dislike, usuń go
-            article.reactions.dislikes = article.reactions.dislikes.filter(id => id !== userId);
-            article.dislikes = (article.dislikes || 1) - 1;
-        }
-        
-        article.reactions.likes.push(userId);
-        article.likes = (article.likes || 0) + 1;
-        showAlert("Polubiłeś ten artykuł!", "success");
-    }
-    
-    // Aktualizuj UI
-    updateReactionUI();
-    saveData();
+    // Sprawdź obecną reakcję użytkownika
+    database.ref('articleReactions/' + article.id + '/' + userId).once('value')
+        .then((snapshot) => {
+            const currentReaction = snapshot.val();
+            let newLikes = article.likes || 0;
+            let newDislikes = article.dislikes || 0;
+            
+            if (currentReaction === 'like') {
+                // Usuń like
+                database.ref('articleReactions/' + article.id + '/' + userId).remove();
+                newLikes = Math.max(0, newLikes - 1);
+                showAlert("Usunięto polubienie", "info");
+            } else {
+                // Dodaj like
+                database.ref('articleReactions/' + article.id + '/' + userId).set('like');
+                newLikes = newLikes + 1;
+                
+                // Jeśli miał dislike, usuń go
+                if (currentReaction === 'dislike') {
+                    newDislikes = Math.max(0, newDislikes - 1);
+                }
+                
+                showAlert("Polubiłeś ten artykuł!", "success");
+            }
+            
+            // Aktualizuj liczniki w Firebase
+            database.ref('articles/' + article.id).update({
+                likes: newLikes,
+                dislikes: newDislikes
+            });
+            
+            // Aktualizuj lokalnie
+            article.likes = newLikes;
+            article.dislikes = newDislikes;
+            
+            // Aktualizuj UI
+            updateReactionUI();
+        })
+        .catch((error) => {
+            console.error("Firebase error:", error);
+            showAlert("Błąd podczas aktualizacji reakcji", "error");
+        });
 }
 
 // Funkcja dodająca/zmieniająca dislike
@@ -559,36 +664,52 @@ function addDislike() {
     
     const article = articles[currentArticleIndex];
     const userId = getUserId();
-    const userReaction = getUserReaction(article.id, userId);
     
-    if(!article.reactions) {
-        article.reactions = { likes: [], dislikes: [] };
-    }
-    
-    if(userReaction === 'dislike') {
-        // Jeśli już dał dislike, usuń go
-        article.reactions.dislikes = article.reactions.dislikes.filter(id => id !== userId);
-        article.dislikes = (article.dislikes || 1) - 1;
-        showAlert("Usunięto niepolubienie", "info");
-    } else {
-        // Dodaj dislike
-        if(userReaction === 'like') {
-            // Jeśli miał like, usuń go
-            article.reactions.likes = article.reactions.likes.filter(id => id !== userId);
-            article.likes = (article.likes || 1) - 1;
-        }
-        
-        article.reactions.dislikes.push(userId);
-        article.dislikes = (article.dislikes || 0) + 1;
-        showAlert("Nie spodobał Ci się ten artykuł", "info");
-    }
-    
-    // Aktualizuj UI
-    updateReactionUI();
-    saveData();
+    // Sprawdź obecną reakcję użytkownika
+    database.ref('articleReactions/' + article.id + '/' + userId).once('value')
+        .then((snapshot) => {
+            const currentReaction = snapshot.val();
+            let newLikes = article.likes || 0;
+            let newDislikes = article.dislikes || 0;
+            
+            if (currentReaction === 'dislike') {
+                // Usuń dislike
+                database.ref('articleReactions/' + article.id + '/' + userId).remove();
+                newDislikes = Math.max(0, newDislikes - 1);
+                showAlert("Usunięto niepolubienie", "info");
+            } else {
+                // Dodaj dislike
+                database.ref('articleReactions/' + article.id + '/' + userId).set('dislike');
+                newDislikes = newDislikes + 1;
+                
+                // Jeśli miał like, usuń go
+                if (currentReaction === 'like') {
+                    newLikes = Math.max(0, newLikes - 1);
+                }
+                
+                showAlert("Nie spodobał Ci się ten artykuł", "info");
+            }
+            
+            // Aktualizuj liczniki w Firebase
+            database.ref('articles/' + article.id).update({
+                likes: newLikes,
+                dislikes: newDislikes
+            });
+            
+            // Aktualizuj lokalnie
+            article.likes = newLikes;
+            article.dislikes = newDislikes;
+            
+            // Aktualizuj UI
+            updateReactionUI();
+        })
+        .catch((error) => {
+            console.error("Firebase error:", error);
+            showAlert("Błąd podczas aktualizacji reakcji", "error");
+        });
 }
 
-// Pobierz unikalny ID użytkownika
+// Pobierz unikalny ID użytkownika (NIE ZMIENIONE)
 function getUserId() {
     let userId = localStorage.getItem('k007_user_id');
     if(!userId) {
@@ -598,66 +719,57 @@ function getUserId() {
     return userId;
 }
 
-// Sprawdź reakcję użytkownika dla danego artykułu
+// Sprawdź reakcję użytkownika dla danego artykułu (ZMIENIONE - Firebase)
 function getUserReaction(articleId, userId) {
-    const article = articles.find(a => a.id === articleId);
-    if(!article || !article.reactions) return null;
-    
-    if(article.reactions.likes && article.reactions.likes.includes(userId)) {
-        return 'like';
-    }
-    
-    if(article.reactions.dislikes && article.reactions.dislikes.includes(userId)) {
-        return 'dislike';
-    }
-    
+    // To będzie asynchroniczne, ale dla uproszczenia zwracamy null
+    // UI będzie aktualizowane przez updateReactionUI
     return null;
 }
 
-// Aktualizuj UI reakcji
+// Aktualizuj UI reakcji (ZMIENIONE - Firebase)
 function updateReactionUI() {
     if(currentArticleIndex === null) return;
     
     const article = articles[currentArticleIndex];
     const userId = getUserId();
-    const userReaction = getUserReaction(article.id, userId);
     
-    // Aktualizuj liczniki
-    document.getElementById('like-count').innerText = article.likes || 0;
-    document.getElementById('dislike-count').innerText = article.dislikes || 0;
-    
-    // Pobierz przyciski
-    const likeBtn = document.querySelector('.like-btn');
-    const dislikeBtn = document.querySelector('.dislike-btn');
-    
-    // Resetuj wszystkie klasy
-    likeBtn.classList.remove('active', 'reaction-animation');
-    dislikeBtn.classList.remove('active', 'reaction-animation');
-    
-    // Dodaj klasy aktywne
-    if(userReaction === 'like') {
-        likeBtn.classList.add('active');
-    } else if(userReaction === 'dislike') {
-        dislikeBtn.classList.add('active');
-    }
-    
-    // Dodaj tooltipy
-    likeBtn.setAttribute('data-tooltip', userReaction === 'like' 
-        ? 'Kliknij aby usunąć polubienie' 
-        : 'Kliknij aby polubić');
-    
-    dislikeBtn.setAttribute('data-tooltip', userReaction === 'dislike'
-        ? 'Kliknij aby usunąć niepolubienie'
-        : 'Kliknij aby nie lubić');
+    // Sprawdź reakcję użytkownika
+    database.ref('articleReactions/' + article.id + '/' + userId).once('value')
+        .then((snapshot) => {
+            const userReaction = snapshot.val();
+            
+            // Aktualizuj liczniki
+            document.getElementById('like-count').innerText = article.likes || 0;
+            document.getElementById('dislike-count').innerText = article.dislikes || 0;
+            
+            // Pobierz przyciski
+            const likeBtn = document.querySelector('.like-btn');
+            const dislikeBtn = document.querySelector('.dislike-btn');
+            
+            // Resetuj wszystkie klasy
+            likeBtn.classList.remove('active', 'reaction-animation');
+            dislikeBtn.classList.remove('active', 'reaction-animation');
+            
+            // Dodaj klasy aktywne
+            if(userReaction === 'like') {
+                likeBtn.classList.add('active');
+            } else if(userReaction === 'dislike') {
+                dislikeBtn.classList.add('active');
+            }
+        })
+        .catch((error) => {
+            console.error("Firebase error:", error);
+        });
 }
 
 // ====================
-// COMMENTS SYSTEM
+// COMMENTS SYSTEM (ZMIENIONE - Firebase)
 // ====================
 
 function postComment() {
     if(currentArticleIndex === null) return;
     
+    const article = articles[currentArticleIndex];
     const nick = document.getElementById('comment-nick').value.trim();
     const text = document.getElementById('comment-text').value.trim();
     
@@ -665,44 +777,42 @@ function postComment() {
         return showAlert("Wpisz nick i treść komentarza!", "warning");
     }
     
-    if(!articles[currentArticleIndex].comments) {
-        articles[currentArticleIndex].comments = [];
-    }
-    
+    const commentId = Date.now();
     const newComment = {
-        id: Date.now(),
+        id: commentId,
         nick: nick,
         text: text,
         date: new Date().toLocaleString('pl-PL'),
         likes: 0,
-        likedBy: [],
-        replies: []
+        likedBy: []
     };
     
-    articles[currentArticleIndex].comments.push(newComment);
-    saveData();
-    
-    // Reset formularza
-    document.getElementById('comment-nick').value = '';
-    document.getElementById('comment-text').value = '';
-    
-    // Aktualizuj UI
-    renderComments();
-    document.getElementById('comments-count').innerText = articles[currentArticleIndex].comments.length;
-    
-    showAlert("Komentarz dodany!", "success");
+    // Zapisz komentarz w Firebase
+    database.ref('articles/' + article.id + '/comments/' + commentId).set(newComment)
+        .then(() => {
+            // Reset formularza
+            document.getElementById('comment-nick').value = '';
+            document.getElementById('comment-text').value = '';
+            
+            showAlert("Komentarz dodany!", "success");
+        })
+        .catch((error) => {
+            console.error("Firebase error:", error);
+            showAlert("Błąd podczas dodawania komentarza", "error");
+        });
 }
 
 function renderComments() {
     if(currentArticleIndex === null) return;
     
     const list = document.getElementById('comments-list');
-    const comments = articles[currentArticleIndex].comments || [];
-    const userId = getUserId();
+    const article = articles[currentArticleIndex];
+    const comments = article.comments || [];
     
-    list.innerHTML = comments.map(comment => {
-        const userLiked = comment.likedBy && comment.likedBy.includes(userId);
-        
+    // Sortuj komentarze od najnowszych
+    const sortedComments = Object.values(comments).sort((a, b) => b.id - a.id);
+    
+    list.innerHTML = sortedComments.map(comment => {
         return `
         <div class="comment-item" data-id="${comment.id}">
             <div class="comment-header">
@@ -718,27 +828,11 @@ function renderComments() {
                 ${comment.text}
             </div>
             <div class="comment-actions">
-                <button class="like-comment-btn ${userLiked ? 'liked' : ''}" onclick="likeComment(${comment.id})">
+                <button class="like-comment-btn" onclick="likeComment(${comment.id})">
                     <i class="fas fa-thumbs-up"></i> 
                     <span class="comment-like-count">${comment.likes || 0}</span>
                 </button>
-                <button class="reply-btn" onclick="showReplyForm(${comment.id})">
-                    <i class="fas fa-reply"></i> Odpowiedz
-                </button>
             </div>
-            ${comment.replies && comment.replies.length > 0 ? `
-                <div class="replies-list">
-                    ${comment.replies.map(reply => `
-                        <div class="reply-item">
-                            <div class="reply-header">
-                                <strong>${reply.nick}</strong>
-                                <span class="reply-date">${reply.date}</span>
-                            </div>
-                            <div class="reply-text">${reply.text}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            ` : ''}
         </div>
         `;
     }).join('');
@@ -747,33 +841,39 @@ function renderComments() {
 function likeComment(commentId) {
     if(currentArticleIndex === null) return;
     
-    const comment = articles[currentArticleIndex].comments.find(c => c.id === commentId);
-    if(!comment) return;
-    
+    const article = articles[currentArticleIndex];
     const userId = getUserId();
     
-    // Inicjalizuj tablicę likedBy jeśli nie istnieje
-    if(!comment.likedBy) {
-        comment.likedBy = [];
-    }
-    
     // Sprawdź czy użytkownik już polubił komentarz
-    const userIndex = comment.likedBy.indexOf(userId);
+    const comment = article.comments[commentId];
+    if (!comment) return;
+    
+    const likedBy = comment.likedBy || [];
+    const userIndex = likedBy.indexOf(userId);
     
     if(userIndex > -1) {
         // Usuń like
-        comment.likedBy.splice(userIndex, 1);
-        comment.likes = (comment.likes || 1) - 1;
+        likedBy.splice(userIndex, 1);
+        const newLikes = Math.max(0, (comment.likes || 1) - 1);
+        
+        database.ref('articles/' + article.id + '/comments/' + commentId).update({
+            likes: newLikes,
+            likedBy: likedBy
+        });
+        
         showAlert("Usunięto polubienie komentarza", "info");
     } else {
         // Dodaj like
-        comment.likedBy.push(userId);
-        comment.likes = (comment.likes || 0) + 1;
+        likedBy.push(userId);
+        const newLikes = (comment.likes || 0) + 1;
+        
+        database.ref('articles/' + article.id + '/comments/' + commentId).update({
+            likes: newLikes,
+            likedBy: likedBy
+        });
+        
         showAlert("Polubiłeś komentarz!", "success");
     }
-    
-    saveData();
-    renderComments();
 }
 
 // ====================
@@ -796,10 +896,10 @@ function renderAdminTools() {
     
     // Renderuj artykuły do usunięcia
     const articlesList = document.getElementById('admin-articles-list');
-    articlesList.innerHTML = articles.map((article, index) => `
+    articlesList.innerHTML = articles.slice(0, 10).map((article, index) => `
         <div class="admin-art-item">
             <span>${article.title.substring(0, 50)}...</span>
-            <button class="btn-delete" onclick="deleteArticle(${index})">
+            <button class="btn-delete" onclick="deleteArticle('${article.id}')">
                 <i class="fas fa-trash"></i> Usuń
             </button>
         </div>
@@ -807,10 +907,10 @@ function renderAdminTools() {
     
     // Renderuj sondaże do usunięcia
     const pollsList = document.getElementById('admin-polls-list');
-    pollsList.innerHTML = polls.map((poll, index) => `
+    pollsList.innerHTML = polls.slice(0, 10).map((poll, index) => `
         <div class="admin-art-item">
             <span>${poll.title.substring(0, 50)}...</span>
-            <button class="btn-delete" onclick="deletePoll(${index})">
+            <button class="btn-delete" onclick="deletePoll('${poll.id}')">
                 <i class="fas fa-trash"></i> Usuń
             </button>
         </div>
@@ -827,16 +927,30 @@ function addAgent() {
         return showAlert("Wpisz ID dziennikarza!", "warning");
     }
     
+    const newPass = prompt("Ustaw hasło dla dziennikarza " + newId);
+    if (!newPass) {
+        return showAlert("Hasło jest wymagane!", "warning");
+    }
+    
+    // Sprawdź czy już istnieje
     if(allowedIDs.includes(newId)) {
         return showAlert("Ten ID już istnieje!", "warning");
     }
     
-    allowedIDs.push(newId);
-    saveData();
-    
-    document.getElementById('new-agent-id').value = '';
-    renderAdminTools();
-    showAlert(`Dodano dziennikarza: ${newId}`, "success");
+    // Dodaj do Firebase
+    database.ref('journalists/' + newId).set({
+        password: newPass,
+        created: new Date().toISOString(),
+        createdBy: currentUser ? currentUser.id : 'ADMIN'
+    })
+    .then(() => {
+        document.getElementById('new-agent-id').value = '';
+        showAlert(`Dodano dziennikarza: ${newId}`, "success");
+    })
+    .catch((error) => {
+        console.error("Firebase error:", error);
+        showAlert("Błąd podczas dodawania dziennikarza", "error");
+    });
 }
 
 function removeAgent(id) {
@@ -845,30 +959,40 @@ function removeAgent(id) {
     }
     
     if(confirm(`Czy na pewno usunąć dziennikarza ${id}?`)) {
-        allowedIDs = allowedIDs.filter(agentId => agentId !== id);
-        saveData();
-        renderAdminTools();
-        showAlert(`Usunięto dziennikarza: ${id}`, "success");
+        database.ref('journalists/' + id).remove()
+            .then(() => {
+                showAlert(`Usunięto dziennikarza: ${id}`, "success");
+            })
+            .catch((error) => {
+                console.error("Firebase error:", error);
+                showAlert("Błąd podczas usuwania", "error");
+            });
     }
 }
 
-function deleteArticle(index) {
+function deleteArticle(articleId) {
     if(confirm("Czy na pewno usunąć ten artykuł? Tej operacji nie można cofnąć.")) {
-        articles.splice(index, 1);
-        saveData();
-        renderAdminTools();
-        renderArticles();
-        showAlert("Artykuł został usunięty", "success");
+        database.ref('articles/' + articleId).remove()
+            .then(() => {
+                showAlert("Artykuł został usunięty", "success");
+            })
+            .catch((error) => {
+                console.error("Firebase error:", error);
+                showAlert("Błąd podczas usuwania", "error");
+            });
     }
 }
 
-function deletePoll(index) {
+function deletePoll(pollId) {
     if(confirm("Czy na pewno usunąć ten sondaż?")) {
-        polls.splice(index, 1);
-        saveData();
-        renderAdminTools();
-        renderPolls();
-        showAlert("Sondaż został usunięty", "success");
+        database.ref('polls/' + pollId).remove()
+            .then(() => {
+                showAlert("Sondaż został usunięty", "success");
+            })
+            .catch((error) => {
+                console.error("Firebase error:", error);
+                showAlert("Błąd podczas usuwania", "error");
+            });
     }
 }
 
@@ -886,11 +1010,11 @@ function renderJournalistDashboard() {
         <div class="my-article-item">
             <div class="my-article-info">
                 <h4>${article.title.substring(0, 60)}${article.title.length > 60 ? '...' : ''}</h4>
-                <span>${article.date}</span>
+                <span>${article.displayDate || article.date}</span>
             </div>
             <div class="my-article-stats">
                 <span><i class="fas fa-thumbs-up"></i> ${article.likes || 0}</span>
-                <span><i class="fas fa-comment"></i> ${article.comments ? article.comments.length : 0}</span>
+                <span><i class="fas fa-comment"></i> ${article.comments ? Object.keys(article.comments).length : 0}</span>
                 <span><i class="fas fa-eye"></i> ${article.views || 0}</span>
             </div>
         </div>
@@ -1052,25 +1176,22 @@ function backupData() {
 }
 
 function clearAllData() {
-    if(confirm("UWAGA! Czy na pewno chcesz wyczyścić WSZYSTKIE dane? Tej operacji NIE można cofnąć!")) {
-        if(confirm("Potwierdź usunięcie wszystkich danych. Wszystkie artykuły, sondaże i ustawienia zostaną usunięte.")) {
-            localStorage.removeItem('k007_articles');
-            localStorage.removeItem('k007_polls');
-            localStorage.removeItem('k007_allowed_ids');
-            localStorage.removeItem('k007_j_passes');
+    if(confirm("UWAGA! Czy na pewno chcesz wyczyścić WSZYSTKIE dane z Firebase? Tej operacji NIE można cofnąć!")) {
+        if(confirm("Potwierdź usunięcie wszystkich danych. Wszystkie artykuły, sondaże i dziennikarze zostaną usunięte.")) {
+            // Usuń wszystko z Firebase
+            database.ref('articles').remove();
+            database.ref('polls').remove();
+            database.ref('journalists').remove();
+            database.ref('articleReactions').remove();
             
-            articles = [];
-            polls = [];
-            allowedIDs = ["DZIENNIKARZ001"];
-            journalistPasses = {};
+            // Dodaj domyślnego dziennikarza
+            database.ref('journalists/DZIENNIKARZ001').set({
+                password: 'haslo001',
+                created: new Date().toISOString(),
+                createdBy: 'SYSTEM'
+            });
             
-            saveData();
-            renderArticles();
-            renderPolls();
-            renderAdminTools();
-            renderJournalistDashboard();
-            
-            showAlert("Wszystkie dane zostały usunięte", "warning");
+            showAlert("Wszystkie dane zostały usunięte z Firebase", "warning");
         }
     }
 }
